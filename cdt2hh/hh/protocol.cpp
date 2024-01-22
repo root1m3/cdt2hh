@@ -170,7 +170,8 @@ ko c::trading_msg(peer_t& peer, svc_t svc, blob_t&& blob) {
     assert(svc < cdt2hh::protocol::svc_end);
     switch(svc) {
         case svc_jobs_req: {
-            return send_jobs(peer);
+            ch_t ch(_local_params, _local_params_mx);
+            return send_jobs(peer, ch);
         }
     }
     return KO_29100;
@@ -199,7 +200,7 @@ ko c::exec_online(peer_t& peer, const string& cmd0, ch_t& ch) {
     istringstream is(cmd0);
     is >> cmd;
     if (cmd == "send_jobs") {
-        return send_jobs(peer);
+        return send_jobs(peer, ch);
     }
     auto r = WP_29101;
     log(r);
@@ -221,14 +222,12 @@ ko c::invoke_api(jobs_t& jobs, ch_t& ch) {
     return jobs.parse(data);
 }
 
-ko c::send_jobs(peer_t& peer) {
+ko c::send_jobs(peer_t& peer, ch_t& ch) {
+    assert(!ch.closed());
     jobs_t jobs;
-    ch_t ch(_local_params, _local_params_mx);
-    {
-        auto r = invoke_api(jobs, ch);
-        if (is_ko(r)) {
-            return r;
-        }
+    auto r = invoke_api(jobs, ch);
+    if (is_ko(r)) {
+        return r;
     }
 
     blob_t blob;

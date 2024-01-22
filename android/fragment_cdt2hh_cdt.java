@@ -51,6 +51,7 @@ import us.gov.io.blob_reader_t;
 import us.gov.io.blob_writer_t;
 import android.view.Gravity;
 import static us.gov.io.types.blob_t;
+import android.widget.Button;
 
 //Front-end for Candidate role.
 public class fragment_cdt2hh_cdt extends role_fragment  {
@@ -174,6 +175,18 @@ public class fragment_cdt2hh_cdt extends role_fragment  {
             content.addView(lbl);
         }
         {
+            Button fetch = new Button(getContext());
+            fetch.setText("Fetch jobs!");
+
+            fetch.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View view) {
+                    fetch_jobs();
+                }
+            });
+
+            content.addView(fetch);
+        }        
+        {
             jobslo = new LinearLayout(getContext()); {
                 LinearLayout.LayoutParams layout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 layout.setMargins(8,8,8,8);
@@ -182,8 +195,13 @@ public class fragment_cdt2hh_cdt extends role_fragment  {
             }
             content.addView(jobslo);
         }
-        
+        //dispatchid = a.hmi().dispatcher.connect_sink(this);
         return v;
+    }
+
+    @Override public void onDestroyView() {
+        super.onDestroyView();
+        //a.hmi().dispatcher.disconnect_sink(dispatchid);
     }
 
     void on_feed__worker(final byte[] payload) {
@@ -198,17 +216,20 @@ public class fragment_cdt2hh_cdt extends role_fragment  {
     }
 
     void fetch_jobs() {
+        log("fetch jobs"); //--strip
         a.hmi().command_trade(tr.tid, "request_jobs");
     }
 
     public class us_trader_r2r_cdt2hh {
         public static final int push_begin = us.wallet.trader.trader_protocol.push_r2r_begin;
-        public static final int push_jobs = push_begin + 0;
-        public static final int push_end = push_begin + 1;
+        public static final int push_jobs = push_begin + 1;
+        public static final int push_end = push_begin + 2;
    }
 
     @Override public void on_push(final hash_t target_tid, final uint16_t code, byte[] payload) {
         super.on_push(target_tid, code, payload);
+        log("on_push " + code.value); //--strip
+
         if (!target_tid.equals(tid)) {
             log("not for me"); //--strip
             return;
@@ -256,9 +277,10 @@ public class fragment_cdt2hh_cdt extends role_fragment  {
         }        
         return b;
     }
-    jobs_t jobs = null;
+    jobs_t jobs = new jobs_t();
     
     TextView lbl;
     LinearLayout jobslo;
+    int dispatchid;
 }
 

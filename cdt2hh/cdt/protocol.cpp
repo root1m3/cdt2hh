@@ -199,7 +199,7 @@ us::gov::io::blob_t c::push_payload(uint16_t pc) const {
     blob_t blob;
     switch(pc) {
         case push_jobs: {
-            log("pushing catalogue");
+            log("pushing jobs");
             jobs.write(blob);
         }
         break;
@@ -216,7 +216,7 @@ ko c::trading_msg(peer_t& peer, svc_t svc, blob_t&& blob) {
     assert(svc < cdt2hh::protocol::svc_end);
     switch(svc) {
         case svc_jobs: {
-            log("received ico image", blob.size(), "bytes");
+            log("received jobs", blob.size(), "bytes");
             jobs.clear();
             blob_reader_t reader(blob);
             auto r = reader.read(jobs);

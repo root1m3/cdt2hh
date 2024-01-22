@@ -53,7 +53,7 @@ namespace us::trader::r2r::cdt2hh::hh {
         ko exec_online(peer_t&, const string& cmd, ch_t&) override;
 
     private:
-        ko send_jobs(peer_t&);
+        ko send_jobs(peer_t&, ch_t&);
         ko invoke_api(jobs_t&, ch_t&);
 
     };
