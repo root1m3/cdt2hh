@@ -1,0 +1,145 @@
+#!/bin/bash -e
+#apt install qrencode php
+
+set -x
+
+function deploy_node {
+    subhome=""
+
+    pocdir=${1%/}
+    . $pocdir/env
+
+    guestdir=""
+    if [[ "_${subhome}" != "_" ]]; then
+        guestdir="guest/${subhome}/"
+    fi
+
+    ihtml="yes"
+    echo "_${protocol}_"
+
+    if [[ -n $protocol ]]; then
+        echo "Protocol $protocol Role $role"
+        html="/var/www/${us}_html/${guestdir}$protocol/$role"
+        echo "html to $html"
+    else
+        echo "no html"
+        ihtml="no"
+    fi
+
+    echo "ssh node:sshport $node:$sshport"
+
+    grootkey=`ush show_groot_key`
+
+    ssh="ssh -i $grootkey -p $sshport"
+    scp="scp -i $grootkey -P $sshport"
+
+    if [ "_$ihtml" == "_yes" ]; then
+        ./common/make.sh $pocdir
+        echo "built"
+    fi
+
+    home="/home/gov"
+    thome="$home/.${us}/wallet/${guestdir}trader"
+    libdir="$thome/lib"
+    hom="$thome/$protocol/$role"
+    pocdirpr="$pocdir/$protocol/$role"
+
+    if [[ "_$nodemode" != "_inet" ]]; then
+        node=`ush nick $node | grep "reachable_addr" | awk '{print $NF }'`
+    else
+	    node=`ping -c1 pit5 | head -n1 | sed "s/.* (\([0-9.]*\)).*/\1/"`
+    fi
+    echo using ip address $node
+
+    $ssh $node mkdir -p $hom
+    $ssh $node mkdir -p $html
+    $ssh $node mkdir -p $libdir
+    $ssh $node touch $hom/$pocdir
+
+    if [ -f $pocdir/thome/bookmarks ]; then
+        $scp $pocdir/thome/bookmarks $node:$thome/
+    fi
+
+    if [ -f $pocdirpr/logo.png ]; then
+        $scp $pocdirpr/logo.png $node:$hom/
+    fi
+    if [ -f $pocdirpr/ico.png ]; then
+        $scp $pocdirpr/ico.png $node:$hom/
+    fi
+    if [[ ! -f $pocdirpr/name ]]; then
+        echo $bzname > $pocdirpr/name
+    fi
+    $scp $pocdirpr/name $node:$hom/
+
+
+    if [[ -f $pocdirpr/params_private ]]; then
+        $scp $pocdirpr/params_private $node:$hom/
+    else
+        echo "params_private is missing"
+    fi
+
+    if [[ -f $pocdirpr/params_shared ]]; then
+        $scp $pocdirpr/params_shared $node:$hom/
+    else
+        echo "params_shared is missing"
+    fi
+
+    if [[ -d $pocdirpr/bin ]]; then
+	    $ssh $node mkdir -p $hom/bin
+        $scp $pocdirpr/bin/* $node:$hom/bin/
+	    $ssh $node chmod +x $hom/bin/*
+    else
+        echo "params_shared is missing"
+    fi
+
+    if [[ -d $pocdir/home/bin ]]; then
+	    $ssh $node mkdir -p $home/bin
+        $scp $pocdir/home/bin/* $node:$home/bin/
+	    $ssh $node chmod +x $home/bin/*
+    fi
+
+    if [[ -d $pocdir/html ]]; then
+        $ssh $node mkdir -p $html
+	    for f in `ls -1 $pocdir/html/*`; do
+	        echo "copying $f"
+            $scp $f $node:$html/
+	    done
+    fi
+
+    if [[ -f $pocdirpr/vol ]]; then
+        $scp $pocdirpr/vol $node:$hom/
+    fi
+
+    if [[ -f $pocdirpr/demo_prescription_product ]]; then
+        $scp $pocdirpr/demo_prescription_product $node:$hom/
+    fi
+
+
+    if [[ -f $pocdirpr/data ]]; then
+        $scp $pocdirpr/data $node:$hom/
+    fi
+
+#    $ssh $node chown gov.gov $hom -R
+    $ssh $node chown gov.gov $home/.${us}/wallet/${guestdir} -R
+
+    echo "Restarting wallet"
+    $ssh $node "systemctl restart ${us}-wallet"
+
+}
+
+if [ "_$1" != "_" ]; then
+    deploy_node $1
+else
+    echo "Sites to upload"
+    l=`find . -type f -name "env" | sed "s#\(.*\)/env#\1#"`
+    echo $l
+    echo "Press Enter to upload. CTRL-C to abort."
+    read -r conf
+    for inst in $l; do
+        echo "Uploading $inst"
+        deploy_node $inst
+    done
+fi
+
+exit 0
+

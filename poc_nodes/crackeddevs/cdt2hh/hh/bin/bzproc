@@ -1,0 +1,16 @@
+#!/usr/bin/python3
+
+import sys, json, requests
+
+apikey = sys.argv[1];
+url = 'https://api.crackeddevs.com/api/get-jobs?limit=10'
+txt = requests.get(url, headers = {"api-key": apikey})
+l = json.loads(txt.text)
+
+for i in l:
+    print(i["title"])
+    print(i["company"])
+    print(i["url"])
+    
+    
+sys.exit(0)

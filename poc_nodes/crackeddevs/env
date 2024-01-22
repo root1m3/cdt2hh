@@ -1,0 +1,16 @@
+node=katlas1
+gov_pkh=3aX7ohG24GbFgxasrFjJUL8NusYW
+wallet_pkh=38Ki9dy2XByG8XcWscEHNfGQxCgz
+subhome=crackeddevs
+arch=x86_64
+port=16671
+sshport=16671
+walletport=16673
+channel=0
+bzname="CrackedDevs"
+protocol=cdt2hh
+role=hh
+wantedrole=cdt
+us=katlas
+endpoint="38Ki9dy2XByG8XcWscEHNfGQxCgz.crackeddevs cdt2hh hh"
+bookmark_ico=cdt2hh/hh/ico.png
