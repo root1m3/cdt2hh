@@ -1,2 +1,2 @@
-# cdt2hh
-Role-2Role protocol for talent hunters and job seekers
+# cdt2hh - Plebble wallet plugin
+Role-to-Role protocol for talent hunters and job seekers
